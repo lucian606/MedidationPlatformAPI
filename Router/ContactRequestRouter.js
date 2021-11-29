@@ -1,7 +1,19 @@
 var express = require('express');
 var router = express.Router();
-const ContactRequests = require('../models/ContactRequest.js');
+var nodemailer = require('nodemailer');
+require('dotenv').config();
 
+const orders = ["asc", "desc", "ASC", "DESC"]
+const sortCriterias = ["email", "name", "message", "id"]
+
+const ContactRequests = require('../models/ContactRequest.js');
+const mail = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        'user': process.env.SENDER_MAIL,
+        'pass': process.env.SENDER_PASS
+    }
+})
 
 router.get('/deleteAll', function(req, res) {
     ContactRequests.deleteMany({}, () => 
@@ -11,7 +23,15 @@ router.get('/deleteAll', function(req, res) {
 })
 
 router.get('/contact-requests', function (req, res) {
-    ContactRequests.find({},{}).then( (collection, err) => {
+    let sortBy = req.query.sortBy;
+    let order = req.query.order;
+    let filterBy = req.query.filterBy;
+
+    sortBy = sortCriterias.includes(sortBy) ? sortBy : "empty";
+    order = orders.includes(order) ? order : 0;
+    filterBy = (filterBy !== undefined && filterBy.trim() != '') ? JSON.parse(filterBy) : {}
+
+    ContactRequests.find(filterBy,{_id : 0}).sort({[sortBy] : order}).exec( (err, collection) => {
         if (err) {
             console.log(err);
         }
@@ -21,12 +41,21 @@ router.get('/contact-requests', function (req, res) {
 })
 
 router.post('/contact-requests', function (req, res) {
-    newEntryData = req.body
+    let newEntryData = req.body;
     ContactRequests.create(newEntryData, (err, db) => {
         if (err) {
             res.status(400);
             res.send({"Message" : "Invalid body"});
         } else {
+            let name = newEntryData.name;
+            let userMessage = newEntryData.message;
+            let message = {
+                from: process.env.SENDER_MAIL,
+                to: process.env.RECEIVER_MAIL,
+                subject: 'A new request was made',
+                text: 'Message: ' + userMessage + "\n" + 'From: ' + name
+            }
+            mail.sendMail(message, (err, info) => {});              
             res.status(200);
             res.send({"Message" : "Entry added"});
         }
@@ -90,4 +119,4 @@ router.patch('/contact-requests/:id', function(req, res) {
     }
 })
 
-module.exports = router
+module.exports = router;
