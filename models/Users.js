@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const bcryptjs = require('bcryptjs')
+const bcryptjs = require('bcryptjs');
 
 const UserSchema = new mongoose.Schema({
     id: {
@@ -36,6 +36,11 @@ const UserSchema = new mongoose.Schema({
         enum: ['teacher', 'student'],
         maxLength: 50
     },    
+    reviews: {
+        type: Array,
+        default: []
+    }
+
 },
     {
         versionKey: false

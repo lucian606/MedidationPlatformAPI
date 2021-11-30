@@ -5,7 +5,8 @@ mongoose.Promise = global.Promise
 const app = express()
 const port = 3000
 const ContactRequestRouter = require('./Router/ContactRequestRouter')
-const UserRouter = require('./Router/UserRouter')
+const UserRouter = require('./Router/UserRouter');
+const ReviewRouter = require('./Router/ReviewRouter');
 
 app.use(express.static('public'))
 app.use(express.json())
@@ -20,6 +21,7 @@ db.once('open', () => {
 
 app.use(ContactRequestRouter);
 app.use(UserRouter)
+app.use(ReviewRouter)
 
 app.listen(port, () => {
     console.log(`REST API server running at http://localhost:${port}`)
