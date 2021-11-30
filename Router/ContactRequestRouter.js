@@ -15,7 +15,7 @@ const mail = nodemailer.createTransport({
     }
 })
 
-router.get('/deleteAll', function(req, res) {
+router.get('/deleteAllContacts', function(req, res) {
     ContactRequests.deleteMany({}, () => 
         console.log("Cleared DB")
     );

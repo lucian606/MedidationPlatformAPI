@@ -1,11 +1,13 @@
 const Users = require('../models/Users.js');
 const Reviews = require('../models/Review.js');
-const { getAllUsers, getUserWithId, deleteUser, registerUser, loginUser, updateUser} = require('./UsersApi.js');
-import * as demo from 'UsersApi.js';
 
 function createMessage(msg) {
-    console.log(getUserWithId)
     return {message : msg};
+}
+
+function deleteAllReviews() {
+    Reviews.deleteMany({}, {});
+    console.log("All reviews deleted");
 }
 
 async function getAllReviews() {
@@ -44,7 +46,7 @@ async function addReview(reviewData) {
 
     try {
         let user_id = reviewData.user_id;
-        let user = await getUserWithId(user_id);
+        let user = await Users.find({id: user_id});
         if (user == null || user == undefined || user.length == 0) {
             result.code = 404;
             result.data = createMessage("No user with the given id");
@@ -72,14 +74,49 @@ async function addReview(reviewData) {
     return result;
 }
 
-async function updateReview(id, review) {
+async function updateReview(id, message) {
+    let result = {code: 200, data : {}};
+    if (typeof message !== 'string') {
+        result.code = 400;
+        result.data = createMessage("Message must be string");
+    } else {
+        try {
+            let review = await Reviews.find({id: id});
+            if (review == null || review == undefined || review.length == 0) {
+                result.code = 404;
+                result.data = createMessage("No review with the given id");
+            } else {
+                let user_id = review[0].user_id;
+                let user = await Users.find({id: user_id});
+                let new_reviews = user[0].reviews.map(function(review) { 
+                    if (review.id == id) {
+                        review.message = message;
+                    }
+                    return review;
+                });
+                await Users.findOneAndUpdate({id: user_id}, {$set: {reviews: new_reviews}}, {upsert: false, useFindAndModify: false, runValidators: true});
+                let updatedReview = await Reviews.findOneAndUpdate({id: id}, {message: message}, {upsert: false, useFindAndModify: false, runValidators: true});
+                result.data = createMessage("Review updated");
+            }
+        } catch (err) {
+            console.log(err);
+            result.code = 500;
+            result.data = createMessage("An error has occured while updating the review with id");
+        }
+    }
+    return result;
 }
 
 async function deleteReview(id) {
     let result = {code: 200, data : {}};
     try {
+        let review = await Reviews.find({id: id});
+        let user_id = review[0].user_id;
+        let user = await Users.find({id: user_id});
+        console.log(user);
+        let new_reviews = user[0].reviews.filter(review => review.id != id);
+        await Users.findOneAndUpdate({id: user_id}, {$set: {reviews: new_reviews}}, {upsert: false, useFindAndModify: false, runValidators: true});
         let removeSuccess = await Reviews.deleteOne({id: id});
-        console.log(removeSuccess);
         if (removeSuccess.deletedCount == 0) {
             result.code = 404;
             result.data = createMessage("No review with the given id");
@@ -94,4 +131,4 @@ async function deleteReview(id) {
     return result;
 }
 
-module.exports = { getAllReviews, getReview, addReview, updateReview, deleteReview };
+module.exports = { deleteAllReviews, getAllReviews, getReview, addReview, updateReview, deleteReview };

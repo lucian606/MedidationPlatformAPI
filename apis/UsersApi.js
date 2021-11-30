@@ -63,9 +63,7 @@ async function deleteUser(id) {
     let result = {code: 200, data : {}};
     try {
         let user = await Users.find({id: id});
-        console.log(user[0]);
         let reviews = user[0].reviews;
-        console.log(reviews);
         for (let i = 0; i < reviews.length; i++) {
             await deleteReview(reviews[i].id);
         }
@@ -171,4 +169,4 @@ async function updateUser(id, updatedContent) {
     return result;
 }
 
-module.exports = { getAllUsers, getAllUsers, getUserWithId, deleteUser, registerUser, loginUser, updateUser};
+module.exports = { deleteAllUsers, getAllUsers, getAllUsers, getUserWithId, deleteUser, registerUser, loginUser, updateUser};
