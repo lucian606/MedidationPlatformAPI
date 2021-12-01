@@ -39,6 +39,10 @@ const UserSchema = new mongoose.Schema({
     reviews: {
         type: Array,
         default: []
+    },
+    tutoring_classes: {
+        type: Array,
+        default: []
     }
 
 },

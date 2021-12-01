@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const studentRegex = /[a-z0-9\._%+!$&*=^|~#%{}/\-]+@stud.upb.ro/
 const teacherRegex = /[a-z0-9\._%+!$&*=^|~#%{}/\-]+@onmicrosoft.upb.ro/
 const {getAllReviews, getReview, deleteReview, updateReview, addReview} = require('./ReviewsApi.js');
+const {deleteTutoringClass} = require('./TutoringClassesApi.js');
 
 function validateEmail(role, email) {
     if (role === "teacher") {
@@ -63,15 +64,19 @@ async function deleteUser(id) {
     let result = {code: 200, data : {}};
     try {
         let user = await Users.find({id: id});
-        let reviews = user[0].reviews;
-        for (let i = 0; i < reviews.length; i++) {
-            await deleteReview(reviews[i].id);
-        }
-        let removeSuccess = await Users.deleteOne({id: id});
-        if (removeSuccess.deletedCount == 0) {
+        if (user == null || user == undefined || user.length == 0) {
             result.code = 404;
             result.data = createMessage("No user with the given id");
         } else {
+            let reviews = user[0].reviews;
+            let tutoring_classes = user[0].tutoring_classes;
+            for (let i = 0; i < reviews.length; i++) {
+                await deleteReview(reviews[i].id);
+            }
+            for (let i = 0; i < tutoring_classes.length; i++) {
+                await deleteTutoringClass(tutoring_classes[i].id);
+            }
+            await Users.deleteOne({id: id});
             result.data = createMessage("User deleted");
         }
     } catch (err) {

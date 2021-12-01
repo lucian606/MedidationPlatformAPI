@@ -7,6 +7,7 @@ const port = 3000
 const ContactRequestRouter = require('./Router/ContactRequestRouter')
 const UserRouter = require('./Router/UserRouter');
 const ReviewRouter = require('./Router/ReviewRouter');
+const TutoringClassesRouter = require('./Router/TutoringClassesRouter');
 
 app.use(express.static('public'))
 app.use(express.json())
@@ -20,8 +21,9 @@ db.once('open', () => {
 })
 
 app.use(ContactRequestRouter);
-app.use(UserRouter)
-app.use(ReviewRouter)
+app.use(UserRouter);
+app.use(ReviewRouter);
+app.use(TutoringClassesRouter);
 
 app.listen(port, () => {
     console.log(`REST API server running at http://localhost:${port}`)

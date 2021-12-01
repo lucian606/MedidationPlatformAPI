@@ -5,7 +5,7 @@ function createMessage(msg) {
     return {message : msg};
 }
 
-function deleteAllReviews() {
+async function deleteAllReviews() {
     Reviews.deleteMany({}, {});
     console.log("All reviews deleted");
 }
@@ -57,8 +57,8 @@ async function addReview(reviewData) {
                 let user_reviews = user[0].reviews;
                 user_reviews.push(reviewData);
                 let updatedReviews = {reviews: user_reviews};
-                let updated_result = await Users.findOneAndUpdate({id : user_id}, {$set : updatedReviews}, {upsert : false, useFindAndModify: false, runValidators : true});
-                result.code = 200;
+                await Users.findOneAndUpdate({id : user_id}, {$set : updatedReviews}, {upsert : false, useFindAndModify: false, runValidators : true});
+                result.code = 201;
                 result.data = createMessage("Review added");
             } catch (err) {
                 console.log(err);
@@ -95,7 +95,7 @@ async function updateReview(id, message) {
                     return review;
                 });
                 await Users.findOneAndUpdate({id: user_id}, {$set: {reviews: new_reviews}}, {upsert: false, useFindAndModify: false, runValidators: true});
-                let updatedReview = await Reviews.findOneAndUpdate({id: id}, {message: message}, {upsert: false, useFindAndModify: false, runValidators: true});
+                await Reviews.findOneAndUpdate({id: id}, {message: message}, {upsert: false, useFindAndModify: false, runValidators: true});
                 result.data = createMessage("Review updated");
             }
         } catch (err) {
@@ -111,18 +111,16 @@ async function deleteReview(id) {
     let result = {code: 200, data : {}};
     try {
         let review = await Reviews.find({id: id});
-        let user_id = review[0].user_id;
-        let user = await Users.find({id: user_id});
-        console.log(user);
-        let new_reviews = user[0].reviews.filter(review => review.id != id);
-        await Users.findOneAndUpdate({id: user_id}, {$set: {reviews: new_reviews}}, {upsert: false, useFindAndModify: false, runValidators: true});
-        let removeSuccess = await Reviews.deleteOne({id: id});
-        if (removeSuccess.deletedCount == 0) {
+        if (review == null || review == undefined || review.length == 0) {
             result.code = 404;
             result.data = createMessage("No review with the given id");
-        } else {
-            result.data = createMessage("Review deleted");
         }
+        let user_id = review[0].user_id;
+        let user = await Users.find({id: user_id});
+        let new_reviews = user[0].reviews.filter(review => review.id != id);
+        await Users.findOneAndUpdate({id: user_id}, {$set: {reviews: new_reviews}}, {upsert: false, useFindAndModify: false, runValidators: true});
+        await Reviews.deleteOne({id: id});
+        result.data = createMessage("Review deleted");
     } catch (err) {
         console.log(err);
         result.code = 500;
