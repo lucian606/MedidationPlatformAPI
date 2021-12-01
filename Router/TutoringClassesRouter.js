@@ -1,7 +1,9 @@
 var express = require('express');
 var router = express.Router();
+const {validateToken, createMessage} = require('../apis/CommonApi.js')
 
 const {deleteAllTutoringClasses, getAllTutoringClasses, getTutoringClassById, addTutoringClass, deleteTutoringClass, updateTutoringClass} = require('../apis/TutoringClassesApi');
+const { validate } = require('../models/TutoringClass');
 
 router.get('/deleteAllTutoringClasses', function(req, res) {
     deleteAllTutoringClasses().then(() => {
@@ -24,10 +26,19 @@ router.get('/tutoring-classes/:id', function(req, res) {
 })
 
 router.post('/tutoring-classes', function(req, res) {
-    addTutoringClass(req.body).then((queryResponse) => {
-        res.status(queryResponse.code);
-        res.send(queryResponse.data);
-    });
+    let token = req.headers.authorization.slice(7);
+    let user = validateToken(token);
+    if (user === null || user.role !== "teacher") {
+        res.status(403);
+        res.send(createMessage("You are not authorized to add a tutoring class"));
+    } else {
+        let tutoringClass = req.body;
+        tutoringClass.teacher_id = user.id;
+        addTutoringClass(tutoringClass).then((queryResponse) => {
+            res.status(queryResponse.code);
+            res.send(queryResponse.data);
+        });
+    }
 })
 
 router.delete('/tutoring-classes/:id', function(req, res) {

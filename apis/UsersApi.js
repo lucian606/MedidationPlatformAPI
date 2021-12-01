@@ -109,7 +109,7 @@ async function loginUser(userCredidentials) {
                 result.data = createMessage("Invalid user credentials");
             } else {
                 const token = jwt.sign({
-                    'email': userCredidentials.email, 'id' : user[0].id}, 
+                    'email': userCredidentials.email, 'id' : user[0].id, 'role' : user[0].role}, 
                     process.env.TOKEN_SECRET,
                     {expiresIn : 1800});
                 result.data = {token : token};

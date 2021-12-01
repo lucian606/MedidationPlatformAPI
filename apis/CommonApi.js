@@ -1,5 +1,7 @@
 require('dotenv').config();
 const jwt = require("jsonwebtoken");
+const studentRegex = /[a-z0-9\._%+!$&*=^|~#%{}/\-]+@stud.upb.ro/
+const teacherRegex = /[a-z0-9\._%+!$&*=^|~#%{}/\-]+@onmicrosoft.upb.ro/
 
 function validateEmail(role, email) {
     if (role === "teacher") {
@@ -20,7 +22,7 @@ function validateToken(token) {
         let decoded = jwt.verify(token, process.env.TOKEN_SECRET)
         return decoded;
     } catch (err) {
-        return "Error";
+        return null;
     }
 }
 
