@@ -1,10 +1,8 @@
+require('dotenv').config();
 const { response } = require('express');
 const TutoringClasses = require('../models/TutoringClass');
 const Users = require('../models/Users.js');
-
-function createMessage(msg) {
-    return {message : msg};
-}
+const { createMessage } = require('./CommonApi.js');
 
 async function deleteAllTutoringClasses() {
     await TutoringClasses.deleteMany({}, {});

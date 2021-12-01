@@ -1,23 +1,11 @@
+require('dotenv').config();
 const Users = require('../models/Users.js');
 const jwt = require("jsonwebtoken");
 const studentRegex = /[a-z0-9\._%+!$&*=^|~#%{}/\-]+@stud.upb.ro/
 const teacherRegex = /[a-z0-9\._%+!$&*=^|~#%{}/\-]+@onmicrosoft.upb.ro/
 const {getAllReviews, getReview, deleteReview, updateReview, addReview} = require('./ReviewsApi.js');
 const {deleteTutoringClass} = require('./TutoringClassesApi.js');
-
-function validateEmail(role, email) {
-    if (role === "teacher") {
-        return teacherRegex.test(email)
-    } else if (role == "student") {
-        return studentRegex.test(email)
-    } else {
-        return false;
-    }
-}
-
-function createMessage(msg) {
-    return {message : msg};
-}
+const {createMessage, validateEmail} = require('./CommonApi.js');
 
 function deleteAllUsers() {
     Users.deleteMany({}, (err) => {
@@ -121,7 +109,7 @@ async function loginUser(userCredidentials) {
                 result.data = createMessage("Invalid user credentials");
             } else {
                 const token = jwt.sign({
-                    'email': userCredidentials.email}, 
+                    'email': userCredidentials.email, 'id' : user[0].id}, 
                     process.env.TOKEN_SECRET,
                     {expiresIn : 1800});
                 result.data = {token : token};
