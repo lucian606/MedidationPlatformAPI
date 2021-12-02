@@ -15,10 +15,10 @@
 
 ## Feature-uri implementate
 
-Am implementat to ce s-a cerut la baza, plus bonusuri.
-    - Contact request:
-        - trimitere de mail cand se face post
-        - filtrare + sortare la getAll
-    - Users:
-        - parola criptata + min 8 chars
-        - utilizarea unui token de autentificare (bearer token) pentru delete/patch in baza userului logat
+Am implementat to ce s-a cerut la baza, plus bonusuri.\
+- Contact request:
+    - trimitere de mail cand se face post
+    - filtrare + sortare la getAll
+- Users:
+    - parola criptata + min 8 chars
+    - utilizarea unui token de autentificare (bearer token) pentru delete/patch in baza userului logat
