@@ -2,6 +2,7 @@ require('dotenv').config();
 const Users = require('../models/Users.js');
 const TutoringClasses = require('../models/TutoringClass.js');
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const studentRegex = /[a-z0-9\._%+!$&*=^|~#%{}/\-]+@stud.upb.ro/
 const teacherRegex = /[a-z0-9\._%+!$&*=^|~#%{}/\-]+@onmicrosoft.upb.ro/
 const {getAllReviews, getReview, deleteReview, updateReview, addReview} = require('./ReviewsApi.js');
@@ -86,7 +87,7 @@ async function deleteUser(id) {
 
 async function registerUser(userData) {
     let result = {code: 200, data : {}};
-    if (userData.password !== userData.confirmation_password) {
+    if (userData.password !== userData.confirmation_password || userData.password.length < 8 || userData.password.length > 50) {
         result.code = 400;
         result.data = createMessage("Passwords don't match");
     } else if (!validateEmail(userData.role, userData.email)) {
@@ -94,9 +95,19 @@ async function registerUser(userData) {
         result.data = createMessage("Email doesn't match the role");     
     } else {
         try {
-        await Users.create(userData);
-        result.code = 201;
-        result.data = createMessage("User created");
+            try {
+                let hash = await bcrypt.genSalt(process.env.SALT_ROUNDS);
+                let hashedPassword = await bcrypt.hash(userData.password, hash);
+                userData.password = hashedPassword;
+                userData.hash = hash;
+                await Users.create(userData);
+                result.code = 201;
+                result.data = createMessage("User created");
+            } catch (err) {
+                console.log(err);
+                result.code = 500;
+                result.data = createMessage("An error has occured while creating the user");
+            }
         } catch (err) {
             result.code = 400;
             result.data = createMessage("Invalid user body");
@@ -112,16 +123,22 @@ async function loginUser(userCredidentials) {
         result.data = createMessage("Invalid user login body");
     } else {
         try {
-            let user = await Users.find({email : userCredidentials.email, password : userCredidentials.password});
+            let user = await Users.find({email : userCredidentials.email});
             if (user == null || user == undefined || user.length == 0) {
                 result.code = 401;
                 result.data = createMessage("Invalid user credentials");
             } else {
+                let isValid = await bcrypt.compare(userCredidentials.password, user[0].password);
+                if (isValid == true) {
                 const token = jwt.sign({
-                    'email': userCredidentials.email, 'id' : user[0].id, 'role' : user[0].role}, 
-                    process.env.TOKEN_SECRET,
-                    {expiresIn : 1800});
-                result.data = {token : token};
+                        'email': userCredidentials.email, 'id' : user[0].id, 'role' : user[0].role}, 
+                        process.env.TOKEN_SECRET,
+                        {expiresIn : 1800});
+                    result.data = {token : token};
+                } else {
+                    result.code = 401;
+                    result.data = createMessage("Invalid user credentials");
+                }
             }
         } catch (err) {
             console.log(err);
@@ -148,11 +165,16 @@ async function updateUser(id, updatedContent) {
             if (!validateEmail(role, email)) {
                 result.code = 400;
                 result.data = createMessage("Email doesn't match the role");
-            } else if (updatedContent.password && updatedContent.password !== updatedContent.confirmation_password) {
+            } else if (updatedContent.password && (updatedContent.password !== updatedContent.confirmation_password || updatedContent.password.length < 8 || updatedContent.password.length > 50)) {
                 result.code = 400;
-                result.data = createMessage("Passwords don't match");
+                result.data = createMessage("Passwords don't match or don't have a lenght between 8 and 50 characters");
             } else {
                 try {
+                    if (updatedContent.password) {
+                        let hash = await bcrypt.genSalt(process.env.SALT_ROUNDS);
+                        let hashedPassword = await bcrypt.hash(updatedContent.password, hash);
+                        updatedContent.password = hashedPassword;
+                    }
                     await Users.findOneAndUpdate({id : id}, {$set : updatedContent }, {upsert : false, useFindAndModify: false, runValidators : true});
                     result.code = 200;
                     result.data = createMessage("User updated");

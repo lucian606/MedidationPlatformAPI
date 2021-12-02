@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const { deleteAllUsers, getAllUsers, getUserWithId, deleteUser, registerUser, loginUser, updateUser } = require('../apis/UsersApi');
+const {validateToken, createMessage} = require('../apis/CommonApi.js');
 
 router.get('/deleteAllUsers', function(req, res) {
     deleteAllUsers();
@@ -23,17 +24,33 @@ router.get('/users/:id', function(req, res) {
 })
 
 router.delete('/users/:id', function(req, res) {
-    deleteUser(req.params.id).then((queryResponse) => {
-        res.status(queryResponse.code);
-        res.send(queryResponse.data);
-    });
+    let token = req.headers.authorization;
+    token = token ? token.slice(7) : null;
+    let user = token ? validateToken(token) : null;
+    if (user == null || user.id != req.params.id) {
+        res.status(403);
+        res.send(createMessage("You are not allowed to delete this user"));
+    } else {    
+        deleteUser(req.params.id).then((queryResponse) => {
+            res.status(queryResponse.code);
+            res.send(queryResponse.data);
+        });
+    }
 })
 
 router.patch('/users/:id', function(req, res) {
-    updateUser(req.params.id, req.body).then((queryResponse) => {
-        res.status(queryResponse.code);
-        res.send(queryResponse.data);
-    });
+    let token = req.headers.authorization;
+    token = token ? token.slice(7) : null;
+    let user = token ? validateToken(token) : null;
+    if (user == null || user.id != req.params.id) {
+        res.status(403);
+        res.send(createMessage("You are not allowed to update this user"));
+    } else {
+        updateUser(req.params.id, req.body).then((queryResponse) => {
+            res.status(queryResponse.code);
+            res.send(queryResponse.data);
+        });
+    }
 })
 
 router.post('/auth/register', function (req, res) {
