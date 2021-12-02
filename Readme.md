@@ -2,7 +2,7 @@
 
 ## Rularea aplicatiei
 
-    node index.js
+    node server.js
 
 ## Pachete folosite
 
