@@ -87,7 +87,8 @@ async function deleteTutoringClass(id) {
             let users = tutoringClass[0].users;
             for (let i = 0; i < users.length; i++) {
                 let user = await Users.find({id: users[i]});
-                let new_classes = user[0].tutoring_classes.filter(tutoring_class => tutoring_class !== id);
+                console.log(id);
+                let new_classes = user[0].tutoring_classes.filter(tutoring_class => tutoring_class != id);
                 console.log(new_classes);
                 await Users.findOneAndUpdate({id: users[i]}, {$set : {tutoring_classes: new_classes}}, {upsert : false, useFindAndModify: false, runValidators : true});
             }
