@@ -6,12 +6,12 @@
 
 ## Pachete folosite
 
-    - express
-    - mongoose (pentru scheme la baza de date)
-    - bcrypt (pentru hashing)
-    - dotenv (sa pot accesa variabilele de mediu din .env)
-    - jwt (sa pot genera tokens)
-    - nodemailer (sa pot trimite mailuri)
+- express
+- mongoose (pentru scheme la baza de date)
+- bcrypt (pentru hashing)
+- dotenv (sa pot accesa variabilele de mediu din .env)
+- jwt (sa pot genera tokens)
+- nodemailer (sa pot trimite mailuri)
 
 ## Feature-uri implementate
 
