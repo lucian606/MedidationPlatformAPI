@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 const {validateToken, createMessage} = require('../apis/CommonApi.js')
 
-const {deleteAllTutoringClasses, getAllTutoringClasses, getTutoringClassById, addTutoringClass, deleteTutoringClass, updateTutoringClass} = require('../apis/TutoringClassesApi');
+const { deleteAllTutoringClasses, getAllTutoringClasses, getTutoringClassById, addTutoringClass, deleteTutoringClass, updateTutoringClass, enrollStudent} = require('../apis/TutoringClassesApi');
 const { validate } = require('../models/TutoringClass');
 
 router.get('/deleteAllTutoringClasses', function(req, res) {
@@ -54,6 +54,23 @@ router.patch('/tutoring-classes/:id', function(req, res) {
         res.status(queryResponse.code);
         res.send(queryResponse.data);
     });
+});
+
+router.post('/tutoring-classes/:id/enroll', function(req, res) {
+    let token = req.headers.authorization.slice(7);
+    let user = validateToken(token);
+    if (user === null) {
+        res.status(401);
+        res.send(createMessage("You are not authorized to enroll in a tutoring class"));
+    } else if (user.role !== "student") {
+        res.status(403);
+        res.send(createMessage("You must be a student to enroll in a tutoring class"));
+    } else {
+        enrollStudent(req.params.id, user.id).then((queryResponse) => {
+            res.status(queryResponse.code);
+            res.send(queryResponse.data);
+        });
+    }
 });
 
 module.exports = router;

@@ -1,5 +1,6 @@
 require('dotenv').config();
 const Users = require('../models/Users.js');
+const TutoringClasses = require('../models/TutoringClass.js');
 const jwt = require("jsonwebtoken");
 const studentRegex = /[a-z0-9\._%+!$&*=^|~#%{}/\-]+@stud.upb.ro/
 const teacherRegex = /[a-z0-9\._%+!$&*=^|~#%{}/\-]+@onmicrosoft.upb.ro/
@@ -61,8 +62,16 @@ async function deleteUser(id) {
             for (let i = 0; i < reviews.length; i++) {
                 await deleteReview(reviews[i].id);
             }
-            for (let i = 0; i < tutoring_classes.length; i++) {
-                await deleteTutoringClass(tutoring_classes[i].id);
+            if (user[0].role === 'teacher') {
+                for (let i = 0; i < tutoring_classes.length; i++) {
+                    await deleteTutoringClass(tutoring_classes[i].id);
+                }
+            } else {
+                for (let i = 0; i < tutoring_classes.length; i++) {
+                    let tutoring_class = await TutoringClasses.find({id: tutoring_classes[i]});
+                    let new_users = tutoring_class[0].users.filter(user => user != id);
+                    await TutoringClasses.updateOne({id: tutoring_classes[i]}, {users: new_users});
+                }
             }
             await Users.deleteOne({id: id});
             result.data = createMessage("User deleted");

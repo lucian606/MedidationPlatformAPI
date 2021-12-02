@@ -20,6 +20,10 @@ const TutoringClassSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    users: {
+        type: Array,
+        default: []
+    }
 },
     {
         versionKey: false

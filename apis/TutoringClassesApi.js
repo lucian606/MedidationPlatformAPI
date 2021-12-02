@@ -84,6 +84,13 @@ async function deleteTutoringClass(id) {
         let teacher = await Users.find({id: teacher_id, role: 'teacher'});
         let new_tutoring_classes = teacher[0].tutoring_classes.filter(tutoring_class => tutoring_class.id != id);
         await Users.findOneAndUpdate({id: teacher_id, role: 'teacher'}, {$set : {tutoring_classes: new_tutoring_classes}}, {upsert : false, useFindAndModify: false, runValidators : true});
+        let users = tutoringClass[0].users;
+        for (let i = 0; i < users.length; i++) {
+            let user = await Users.find({id: users[i]});
+            let new_classes = user[0].tutoring_classes.filter(tutoring_class => tutoring_class !== id);
+            console.log(new_classes);
+            await Users.findOneAndUpdate({id: users[i]}, {$set : {tutoring_classes: new_classes}}, {upsert : false, useFindAndModify: false, runValidators : true});
+        }
         await TutoringClasses.deleteOne({id: id});
         result.data = createMessage("Tutoring class deleted");
     } catch (err) {
@@ -127,4 +134,29 @@ async function updateTutoringClass(id, description) {
     return result;
 }
 
-module.exports = { deleteAllTutoringClasses, getAllTutoringClasses, getTutoringClassById, addTutoringClass, deleteTutoringClass, updateTutoringClass };
+async function enrollStudent(id, studentId) {
+    let result = {code: 200, data: []};
+    try {
+        let tutoringClass = await TutoringClasses.find({id: id});
+        if (tutoringClass == null || tutoringClass == undefined || tutoringClass.length == 0) {
+            result.code = 404;
+            result.data = createMessage("Tutoring class not found");
+        } else {
+            let student = await Users.find({id: studentId, role: 'student'});
+            let new_tutoring_classes = student[0].tutoring_classes;
+            let new_users = tutoringClass[0].users;
+            new_tutoring_classes.push(id);
+            new_users.push(studentId);
+            await TutoringClasses.updateOne({id: id}, {$set : {users: new_users}}, {upsert : false, useFindAndModify: false, runValidators : true});
+            await Users.updateOne({id: studentId, role: 'student'}, {$set : {tutoring_classes: new_tutoring_classes}}, {upsert : false, useFindAndModify: false, runValidators : true});
+            result.data = createMessage("Student enrolled");
+        }
+    } catch (err) {
+        console.log(err);
+        result.code = 500;
+        result.data = createMessage("An error has occured while enrolling student");
+    }
+    return result;
+}
+
+module.exports = { deleteAllTutoringClasses, getAllTutoringClasses, getTutoringClassById, addTutoringClass, deleteTutoringClass, updateTutoringClass, enrollStudent };
