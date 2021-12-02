@@ -57,12 +57,13 @@ router.patch('/tutoring-classes/:id', function(req, res) {
 });
 
 router.post('/tutoring-classes/:id/enroll', function(req, res) {
-    let token = req.headers.authorization.slice(7);
-    let user = validateToken(token);
-    if (user === null) {
+    let token = req.headers.authorization;
+    token = token ? token.slice(7) : null;
+    let user = token ? validateToken(token) : null;
+    if (user == null) {
         res.status(401);
         res.send(createMessage("You are not authorized to enroll in a tutoring class"));
-    } else if (user.role !== "student") {
+    } else if (user.role != "student") {
         res.status(403);
         res.send(createMessage("You must be a student to enroll in a tutoring class"));
     } else {

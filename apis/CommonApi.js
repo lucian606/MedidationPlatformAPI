@@ -22,6 +22,7 @@ function validateToken(token) {
         let decoded = jwt.verify(token, process.env.TOKEN_SECRET)
         return decoded;
     } catch (err) {
+        console.log(err);
         return null;
     }
 }

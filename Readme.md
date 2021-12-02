@@ -22,3 +22,5 @@ Am implementat tot ce s-a cerut la baza, plus urmatoarele bonusuri:
 - Users:
     - parola criptata + min 8 chars
     - utilizarea unui token de autentificare (bearer token) pentru delete/patch in baza userului logat
+- Reviews:
+    - pot fi adaugate doar de useri logati

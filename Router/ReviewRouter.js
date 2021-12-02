@@ -4,6 +4,7 @@ var request = require('request');
 const Reviews = require('../models/Review');
 const Users = require('../models/Users');
 const {deleteAllReviews, getAllReviews, getReview, deleteReview, updateReview, addReview} = require('../apis/ReviewsApi');
+const {validateToken, createMessage} = require('../apis/CommonApi');
 
 router.get('/deleteAllReviews', (req, res) => {
     deleteAllReviews().then(() => {
@@ -19,10 +20,19 @@ router.get('/reviews', function(req, res) {
 })
 
 router.post('/reviews', function (req, res) {
-    addReview(req.body).then((queryResponse) => {
-        res.status(queryResponse.code);
-        res.send(queryResponse.data);
-    });
+    let token = req.headers.authorization;
+    token = token ? token.slice(7) : null;
+    let user = token ? validateToken(token) : null;
+    if (user == null) {
+        res.status(403);
+        res.send(createMessage("You need to be logged in to post a review"));
+    } else {
+        req.body.user_id = user.id;
+        addReview(req.body).then((queryResponse) => {
+            res.status(queryResponse.code);
+            res.send(queryResponse.data);
+        });
+    }
 })
 
 router.get('/reviews/:id', function(req, res) {

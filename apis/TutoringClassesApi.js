@@ -79,20 +79,21 @@ async function deleteTutoringClass(id) {
         if (tutoringClass == null || tutoringClass == undefined || tutoringClass.length == 0) {
             result.code = 404;
             result.data = createMessage("Tutoring class not found");
+        } else {
+            let teacher_id = tutoringClass[0].teacher_id;
+            let teacher = await Users.find({id: teacher_id, role: 'teacher'});
+            let new_tutoring_classes = teacher[0].tutoring_classes.filter(tutoring_class => tutoring_class.id != id);
+            await Users.findOneAndUpdate({id: teacher_id, role: 'teacher'}, {$set : {tutoring_classes: new_tutoring_classes}}, {upsert : false, useFindAndModify: false, runValidators : true});
+            let users = tutoringClass[0].users;
+            for (let i = 0; i < users.length; i++) {
+                let user = await Users.find({id: users[i]});
+                let new_classes = user[0].tutoring_classes.filter(tutoring_class => tutoring_class !== id);
+                console.log(new_classes);
+                await Users.findOneAndUpdate({id: users[i]}, {$set : {tutoring_classes: new_classes}}, {upsert : false, useFindAndModify: false, runValidators : true});
+            }
+            await TutoringClasses.deleteOne({id: id});
+            result.data = createMessage("Tutoring class deleted");
         }
-        let teacher_id = tutoringClass[0].teacher_id;
-        let teacher = await Users.find({id: teacher_id, role: 'teacher'});
-        let new_tutoring_classes = teacher[0].tutoring_classes.filter(tutoring_class => tutoring_class.id != id);
-        await Users.findOneAndUpdate({id: teacher_id, role: 'teacher'}, {$set : {tutoring_classes: new_tutoring_classes}}, {upsert : false, useFindAndModify: false, runValidators : true});
-        let users = tutoringClass[0].users;
-        for (let i = 0; i < users.length; i++) {
-            let user = await Users.find({id: users[i]});
-            let new_classes = user[0].tutoring_classes.filter(tutoring_class => tutoring_class !== id);
-            console.log(new_classes);
-            await Users.findOneAndUpdate({id: users[i]}, {$set : {tutoring_classes: new_classes}}, {upsert : false, useFindAndModify: false, runValidators : true});
-        }
-        await TutoringClasses.deleteOne({id: id});
-        result.data = createMessage("Tutoring class deleted");
     } catch (err) {
         console.log(err);
         result.code = 500;
