@@ -15,7 +15,7 @@
 
 ## Feature-uri implementate
 
-Am implementat tot ce s-a cerut la baza, plus urmatoarele bonusuri:\
+Am implementat tot ce s-a cerut la baza, plus urmatoarele bonusuri:
 - Contact request:
     - trimitere de mail cand se face post
     - filtrare + sortare la getAll
